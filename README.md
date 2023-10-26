@@ -1,5 +1,14 @@
 # JSpector
 
+## Diff with Original
+
+This fork has the following customizations:
+- consider only urls which are in scope
+- exclude false positives based on a list of known ones
+- do not report dangerous methods (imho uninteresting as usually false positive)
+
+## Original
+
 JSpector is a Burp Suite extension that passively crawls JavaScript files and automatically creates issues with URLs, endpoints and dangerous methods found on the JS files.
 
 ![image](https://user-images.githubusercontent.com/16657045/228315561-ee2fa437-5020-45c2-99b2-6ee8cd71f880.png)
