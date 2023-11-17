@@ -4,6 +4,7 @@
 
 This fork has the following customizations:
 - consider only urls which are in scope
+- exclude uninteresting file types
 - exclude false positives based on a list of known ones
 - do not report dangerous methods (imho uninteresting as usually false positive)
 

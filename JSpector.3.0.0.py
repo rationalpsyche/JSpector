@@ -34,6 +34,7 @@ class BurpExtender(IBurpExtender, IHttpListener, IScannerListener, IExtensionSta
         callbacks.registerContextMenuFactory(self)
 
         print("JSpector extension loaded successfully.\nWarning: the size of the output console content is limited, we recommend that you save your results in a file.\n")
+        print("Recall that only in-scope items are scanned.\n")
 
     def processHttpMessage(self, toolFlag, messageIsRequest, messageInfo):
         def is_js_file(url):
@@ -75,9 +76,11 @@ class BurpExtender(IBurpExtender, IHttpListener, IScannerListener, IExtensionSta
     def create_issue(self, messageInfo, urls):
         urls_found, endpoints_found = self.sort_urls_endpoints(urls)
         issue = JSURLsIssue(self._helpers, messageInfo, urls, urls_found, endpoints_found)
-        self._callbacks.addScanIssue(issue)
-        js_full_url = messageInfo.getUrl().toString()
-        self.output_results(urls, js_full_url)
+        # avoid creating empty issues
+        if len(endpoints_found) > 0 or len(urls_found) > 0:
+            self._callbacks.addScanIssue(issue)
+            js_full_url = messageInfo.getUrl().toString()
+            self.output_results(urls, js_full_url)
 
     def extensionUnloaded(self):
         print("JSpector extension unloaded.")
@@ -126,7 +129,8 @@ class BurpExtender(IBurpExtender, IHttpListener, IScannerListener, IExtensionSta
         urls_list = []
         endpoints_list = []
 
-        false_positive_endpoints = ["replace("]
+        false_positive_endpoints = ["replace(","/gi,","/>","/g","/?","/(","/="]
+        uninteresting_extensions = [".css",".png",".ico",".jpg",".jpeg",".gif"]
 
         for url in urls:
             if re.match('^(?:http|https|ftp|ftps|sftp|file|tftp|telnet|gopher|ldap|ssh)://', url):
@@ -141,6 +145,10 @@ class BurpExtender(IBurpExtender, IHttpListener, IScannerListener, IExtensionSta
                 # customization: skip false positive such as 'replace(/\\...'
                 for false_positive in false_positive_endpoints:
                     if false_positive in url:
+                        skip=True
+                        break
+                for uninteresting_extension in uninteresting_extensions:
+                    if url.endswith(uninteresting_extension):
                         skip=True
                         break
                 if not skip:
